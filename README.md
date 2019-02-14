@@ -1,2 +1,0 @@
-# useInfiniteScrollTable
-Created with CodeSandbox
