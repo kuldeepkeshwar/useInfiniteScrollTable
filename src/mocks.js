@@ -2,7 +2,7 @@ import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
 
 const mock = new MockAdapter(axios, { delayResponse: 100 });
-const totalRecords = 55000;
+const totalRecords = 10000;
 mock.onGet("/users").reply(function(config) {
   const {
     filter: { status },
