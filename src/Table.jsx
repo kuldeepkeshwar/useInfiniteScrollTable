@@ -1,8 +1,29 @@
-import React from "react";
-import useTable from "./useTable";
+import React, { useRef, useEffect, useState } from "react";
+import useInfiniteScrollTable from "./useInfiniteScrollTable";
 import Loader from "./Components/Loader";
-import Pagination from "./Components/Pagination";
+function useDebounce(value, delay) {
+  // State and setters for debounced value
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
+  useEffect(
+    () => {
+      // Update debounced value after delay
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      // Cancel the timeout if value changes (also on delay change or unmount)
+      // This is how we prevent debounced value from updating if value is changed ...
+      // .. within the delay period. Timeout gets cleared and restarted.
+      return () => {
+        clearTimeout(handler);
+      };
+    },
+    [value, delay] // Only re-call effect if value or delay changes
+  );
+
+  return debouncedValue;
+}
 function Filter({ filter, setFilter }) {
   return (
     <div>
@@ -29,42 +50,36 @@ function Filter({ filter, setFilter }) {
 }
 export default function Table() {
   const {
-    state: { items, loading, error, filter, pagination },
-    next,
-    previous,
+    state: { items, loading, error, filter },
+    scrollHandler,
     setFilter
-  } = useTable({
+  } = useInfiniteScrollTable({
     url: "/users",
-    initialState: { filter: { status: undefined }, limit: 10 }
+    initialState: { filter: { status: undefined }, limit: 20 }
   });
+
   return (
     <div className="App">
       <Filter filter={filter} setFilter={setFilter} />
-      <div className="list">
+      <div className="list" onScroll={scrollHandler}>
         <div className="row header">
           <div className="cell">ID</div>
           <div className="cell">NAME</div>
           <div className="cell">STATUS</div>
         </div>
-        {loading ? (
-          <Loader className="grow" />
-        ) : error ? (
-          <div>{error}</div>
-        ) : (
-          <div>
-            {items.map(item => {
-              return (
-                <div className="row" key={item.id}>
-                  <div className="cell">{item.id}</div>
-                  <div className="cell">{item.name}</div>
-                  <div className="cell">{item.status}</div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div className="content grow">
+          {items.map(item => {
+            return (
+              <div className="row" key={item.id}>
+                <div className="cell">{item.id}</div>
+                <div className="cell">{item.name}</div>
+                <div className="cell">{item.status}</div>
+              </div>
+            );
+          })}
+          {loading ? <Loader /> : error ? <div>{error}</div> : null}
+        </div>
       </div>
-      <Pagination previous={previous} next={next} pagination={pagination} />
     </div>
   );
 }

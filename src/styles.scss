@@ -1,0 +1,53 @@
+.App {
+  font-family: sans-serif;
+}
+.btn {
+  color: skyblue;
+  width: 5rem;
+  height: 2rem;
+  cursor: pointer;
+  outline: none;
+  margin: 0.5rem;
+  border: 1px black solid;
+  &.disabled {
+    color: #c7c0c0;
+    cursor: not-allowed;
+  }
+  &.link {
+    border: none;
+    &.active {
+      border-bottom: 1px skyblue solid;
+    }
+  }
+}
+
+.list {
+  border: 1px #c3bdbd solid;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  .row {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    &.header {
+      border-bottom: 1px #c3bdbd solid;
+    }
+    .cell {
+      margin: 0.5rem;
+    }
+  }
+  .content {
+    overflow: auto;
+  }
+}
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  .pagination-btn {
+    width: 2rem;
+  }
+}
+.grow {
+  flex: 1;
+}
