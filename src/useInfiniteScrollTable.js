@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useState, useRef } from "react";
 import useSafeFunction from "./useSafeFunction";
 import axios from "axios";
 
@@ -19,6 +19,7 @@ function reducer(state, { type, payload }) {
       const { filter } = payload;
       return {
         ...state,
+        items: [],
         pagination: {
           limit: state.pagination.limit,
           offset: 0,
@@ -39,7 +40,7 @@ function reducer(state, { type, payload }) {
       const { limit, offset } = state.pagination;
       return {
         ...state,
-        items,
+        items: state.items.concat(...items),
         loading: false,
         pagination: {
           limit: limit,
@@ -52,7 +53,6 @@ function reducer(state, { type, payload }) {
       const { error } = payload;
       return {
         ...state,
-        items: [],
         loading: false,
         error
       };
@@ -90,24 +90,36 @@ function reducer(state, { type, payload }) {
       throw new Error("Missing action type");
   }
 }
-export default function useTable({ url, initialState: { filter, limit } }) {
+export default function useInfiniteScrollTable({
+  url,
+  initialState: { filter, limit }
+}) {
   const [state, $dispatch] = useReducer(reducer, {
     ...initialState,
     filter,
     pagination: { ...initialState.pagination, limit }
   });
-  const dispatch = useSafeFunction($dispatch);
+  const [isFinished, setFinished] = useState(true);
+  const lastScroll = useRef(0);
+
+  const dispatch = useSafeFunction(function(...args) {
+    $dispatch(...args);
+  });
   useEffect(fetchItems, [state.filter, state.pagination.offset]);
 
   function setFilter(filter) {
     dispatch({ type: "filter", payload: { filter } });
+    setFinished(true);
+    lastScroll.current = 0;
   }
   function next() {
-    dispatch({ type: "next" });
+    const { limit, offset, totalRecords } = state.pagination;
+    if (isFinished && limit + offset < totalRecords) {
+      dispatch({ type: "next" });
+      setFinished(false);
+    }
   }
-  function previous() {
-    dispatch({ type: "previous" });
-  }
+
   function fetchItems() {
     const {
       filter,
@@ -120,11 +132,21 @@ export default function useTable({ url, initialState: { filter, limit } }) {
       .then(function(resp) {
         const { items, totalRecords } = resp.data;
         dispatch({ type: "fetch_success", payload: { items, totalRecords } });
+        setFinished(true);
       })
       .catch(function(err) {
         const error = err.response.data;
         dispatch({ type: "fetch_failure", payload: { error } });
+        setFinished(true);
       });
   }
-  return { state, next, previous, setFilter };
+  function scrollHandler(event) {
+    if (lastScroll.current < event.target.scrollTop) {
+      next();
+      lastScroll.current = event.target.scrollTop;
+    } else {
+      // console.log("up");
+    }
+  }
+  return { state, scrollHandler, setFilter };
 }

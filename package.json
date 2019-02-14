@@ -1,7 +1,7 @@
 {
-  "name": "usetable",
+  "name": "useinfinitescrolltable",
   "version": "1.0.0",
-  "description": "hook for Table",
+  "description": "hook for useInfiniteScrollTable",
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {

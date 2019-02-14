@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./mocks";
-import "./styles.css";
+import "./styles.scss";
 import Table from "./Table";
 
 function App() {
